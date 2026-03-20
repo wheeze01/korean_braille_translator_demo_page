@@ -577,7 +577,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
 # ----------------------------
 # UI Configuration & State
 # ----------------------------
-st.set_page_config(page_title="Braille Translation Demo", page_icon="⠁", layout="wide")
+st.set_page_config(page_title="AI 기반 점자 번역 시스템", page_icon="⠁", layout="wide")
 st.markdown(
     """
     <style>
@@ -591,9 +591,8 @@ st.markdown(
 st.markdown(
     """
     <div style="text-align:center; margin-top: 0rem">
-      <h1 style="margin-bottom:0.2rem; font-size: 2.1rem; line-height:1.25;">
-        LLM-Based System for Enhanced Text-to-Braille Translation:<br/>
-        Incorporating Contextual Awareness and Automated Verification
+      <h1 style="margin-bottom:0.2rem; font-size: 3.0rem; line-height:1.25;">
+       AI 기반 점자 번역 시스템
       </h1>
     </div>
     <hr style="margin-top: 0.5rem; margin-bottom: 1.5rem; border: 0; border-top: 1px solid #f0f2f6;" />
@@ -687,9 +686,7 @@ def clear_summary_on_change():
 # ----------------------------
 # Layout
 # ----------------------------
-mode = st.radio(
-    "Mode", ["Translation", "Validation"], horizontal=True, label_visibility="collapsed"
-)
+mode = "Translation"
 disabled = st.session_state.get("action_disabled", True)
 valid_pair = st.session_state.get("valid_pair", False)
 model_ok = st.session_state.get("model_ok", False)
@@ -700,41 +697,29 @@ if mode == "Translation":
     if is_text_to_braille:
         col1, col2, col3 = st.columns([8, 1.2, 1])
         with col1:
-            st.markdown(
-                '<h2 style="margin:0;">Translation</h2>', unsafe_allow_html=True
-            )
+            st.markdown('<h2 style="margin:0;">번역</h2>', unsafe_allow_html=True)
         with col2:
             go_summarize = st.button(
-                "Summarize",
+                "요약",
                 type="secondary",
                 use_container_width=True,
                 disabled=disabled,
             )
         with col3:
             go_translate = st.button(
-                "Translate", type="primary", use_container_width=True, disabled=disabled
+                "번역", type="primary", use_container_width=True, disabled=disabled
             )
     else:
         col1, col2 = st.columns([9, 1])
         with col1:
-            st.markdown(
-                '<h2 style="margin:0;">Translation</h2>', unsafe_allow_html=True
-            )
+            st.markdown('<h2 style="margin:0;">번역</h2>', unsafe_allow_html=True)
         with col2:
             go_translate = st.button(
-                "Translate", type="primary", use_container_width=True, disabled=disabled
+                "번역", type="primary", use_container_width=True, disabled=disabled
             )
-elif mode == "Validation":
-    col1, col2 = st.columns([9, 1])
-    with col1:
-        st.markdown('<h2 style="margin:0;">Validation</h2>', unsafe_allow_html=True)
-    with col2:
-        go_validate_only = st.button(
-            "Validate", type="primary", use_container_width=True, disabled=disabled
-        )
 
 if not valid_pair:
-    st.warning("Exactly one of Source/Target must be Braille.")
+    st.warning("입력 또는 출력 중 하나만 점자여야 합니다.")
 elif not model_ok:
     st.warning(f"No vLLM model configured for {st.session_state.llm_lang_eval}.")
 
@@ -755,7 +740,7 @@ with header_cols[2]:
 
 # Input
 st.markdown(
-    f'<h3 style="margin-top: 0.2rem; margin-bottom: 0.3rem;">Input ({st.session_state.src_lang})</h3>',
+    f'<h3 style="margin-top: 0.2rem; margin-bottom: 0.3rem;">입력 ({st.session_state.src_lang})</h3>',
     unsafe_allow_html=True,
 )
 st.session_state.src_text = st.text_area(
@@ -763,7 +748,7 @@ st.session_state.src_text = st.text_area(
     height=110,
     label_visibility="collapsed",
     value=st.session_state.src_text,
-    placeholder="Enter the text to be translated here.",
+    placeholder="번역할 텍스트를 입력하세요.",
     on_change=clear_summary_on_change,  # 원본 수정시 요약 초기화
 )
 
@@ -809,7 +794,7 @@ else:
         "Target Text",
         height=135,
         label_visibility="collapsed",
-        placeholder="The translation results are displayed here.",
+        placeholder="번역 결과가 여기에 표시됩니다.",
         key="tgt_text_empty",
     )
 
@@ -847,20 +832,6 @@ if mode == "Translation" and "go_translate" in locals() and go_translate and src
     st.session_state.last_val_msg = val_msg
 
     # E. 검증 결과 렌더링
-    if "success" in val_msg.lower():
-        validation_placeholder.success(val_msg)
-    else:
-        validation_placeholder.error(val_msg)
-
-elif (
-    mode == "Validation"
-    and "go_validate_only" in locals()
-    and go_validate_only
-    and src_nfc
-    and st.session_state.tgt_text
-):
-    val_msg = validate_translation(src_nfc, st.session_state.tgt_text)
-    st.session_state.last_val_msg = val_msg
     if "success" in val_msg.lower():
         validation_placeholder.success(val_msg)
     else:
