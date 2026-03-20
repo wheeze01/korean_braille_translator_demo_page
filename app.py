@@ -811,7 +811,7 @@ else:
 
 if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
     msg = st.session_state.last_val_msg
-    if "success" in msg.lower():
+    if "성공" in msg.lower():
         validation_placeholder.success(msg)
     else:
         validation_placeholder.error(msg)
