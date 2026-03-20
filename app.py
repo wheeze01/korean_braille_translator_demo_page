@@ -184,14 +184,14 @@ def gemini_summarize(text: str, source_language: str) -> str:
     normalized_input = normalize_text(text)
     normalized_cached_src = normalize_text(PREDEFINED_DATA["summary_case_src"])
 
-    progress_text = "Connecting to Gemini..."
+    progress_text = "Gemini 연결 중..."
     my_bar = st.progress(0, text=progress_text)
 
     if normalized_input == normalized_cached_src:
         logger.info("[Cache Hit] Summarization")
         for percent_complete in range(0, 101, 20):
             time.sleep(0.3)
-            my_bar.progress(percent_complete, text="Summarizing text...")
+            my_bar.progress(percent_complete, text="텍스트 요약 중...")
         my_bar.empty()
         return PREDEFINED_DATA["summary_case_sum"]
 
@@ -203,7 +203,7 @@ def gemini_summarize(text: str, source_language: str) -> str:
         system_instruction=SUMMARIZATION_SYSTEM_PROMPT,
     )
 
-    my_bar.progress(30, text="Requesting summary to Gemini...")
+    my_bar.progress(30, text="Gemini에 요약 요청 중...")
 
     # [추가됨] Gemini Request 로깅
     contents_payload = f"source_language: {source_language}\n\ninput_text: {text}"
@@ -215,7 +215,7 @@ def gemini_summarize(text: str, source_language: str) -> str:
         config=cfg,
         contents=contents_payload,
     )
-    my_bar.progress(90, text="Processing summary result...")
+    my_bar.progress(90, text="요약 결과 처리 중...")
 
     # [추가됨] Gemini Response 로깅
     logger.info("==== [Gemini Response: Summarize] ====")
@@ -225,7 +225,7 @@ def gemini_summarize(text: str, source_language: str) -> str:
     parsed = json.loads(raw)
     summary = parsed.get("output_text", text)
 
-    my_bar.progress(100, text="Done.")
+    my_bar.progress(100, text="완료.")
     time.sleep(0.5)
     my_bar.empty()
     return summary
@@ -311,7 +311,7 @@ def run_translation(text: str) -> str:
         normalize_text(PREDEFINED_DATA["trans_3_tgt"]): PREDEFINED_DATA["trans_3_src"],
     }
 
-    progress_text = "Connecting to AI Model..."
+    progress_text = "AI 모델 연결 중..."
     my_bar = st.progress(0, text=progress_text)
 
     # 1. 캐시 히트
@@ -320,14 +320,14 @@ def run_translation(text: str) -> str:
         for percent_complete in range(0, 101, 10):
             time.sleep(0.15)
             if percent_complete < 30:
-                msg = "Sending request..."
+                msg = "요청 전송 중..."
             elif percent_complete < 70:
-                msg = "Translating..."
+                msg = "번역 중..."
             else:
-                msg = "Processing output..."
+                msg = "결과 처리 중..."
             my_bar.progress(percent_complete, text=msg)
 
-        my_bar.progress(100, text="Done.")
+        my_bar.progress(100, text="완료.")
         time.sleep(0.5)
         my_bar.empty()
         return cache_map[normalized_input]
@@ -367,15 +367,15 @@ def run_translation(text: str) -> str:
             for i, s in enumerate(src_sents, 1):
                 progress_percent = int((i / total_sents) * 100)
                 my_bar.progress(
-                    progress_percent, text=f"Translating sentence {i}/{total_sents}..."
+                    progress_percent, text=f"문장 번역 중 {i}/{total_sents}..."
                 )
                 out = llm_chat(system_msg, s, lang)
-                tgt_sents.append(_safe_str(out, "[Empty Translation]"))
+                tgt_sents.append(_safe_str(out, "[번역 없음]"))
 
             st.session_state["tgt_sents"] = tgt_sents
             ui_text = assemble_by_lines(tgt_sents, line_counts)
 
-            my_bar.progress(100, text="Done.")
+            my_bar.progress(100, text="완료.")
             time.sleep(0.5)
             my_bar.empty()
             return ui_text
@@ -387,28 +387,28 @@ def run_translation(text: str) -> str:
                 if line.strip():
                     my_bar.progress(
                         int(((i + 1) / total_lines) * 100),
-                        text=f"Translating line {i+1}/{total_lines}...",
+                        text=f"줄 번역 중 {i+1}/{total_lines}...",
                     )
                     out = llm_chat(system_msg, line, lang)
-                    translated_lines.append(_safe_str(out, "[Empty Translation]"))
+                    translated_lines.append(_safe_str(out, "[번역 없음]"))
                 else:
                     translated_lines.append("")
             result = "\n".join(translated_lines)
-            my_bar.progress(100, text="Done.")
+            my_bar.progress(100, text="완료.")
             time.sleep(0.5)
             my_bar.empty()
             return result
 
     except Exception as e:
         my_bar.empty()
-        return f"Translation error: {e}"
+        return f"번역 오류: {e}"
 
 
 # ----------------------------
 # Validation
 # ----------------------------
 def validate_translation(src: str, tgt_ui_text: str) -> str:
-    progress_text = "Verifying translation..."
+    progress_text = "번역 검증 중..."
     val_bar = st.progress(0, text=progress_text)
 
     normalized_src = normalize_text(src)
@@ -425,16 +425,16 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
 
     if normalized_src in cached_sources:
         steps = [
-            "Performing reverse translation...",
-            "Comparing with original text...",
-            "Finalizing verification...",
+            "역번역 수행 중...",
+            "원문과 비교 중...",
+            "검증 마무리 중...",
         ]
         step_percents = [30, 60, 100]
         for step_idx, step_msg in enumerate(steps):
             val_bar.progress(step_percents[step_idx], text=step_msg)
             time.sleep(0.6)
         val_bar.empty()
-        return "Automatic Validation using Forward-Backward Success."
+        return "자동 검증 성공 (정방향-역방향 일치)."
 
     try:
         # 프롬프트 설정
@@ -458,7 +458,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             if st.session_state.mode == "text_to_braille"
             else st.session_state.tgt_lang
         )
-        val_bar.progress(10, text="Preparing validation...")
+        val_bar.progress(10, text="검증 준비 중...")
 
         if USE_SENTENCE_LEVEL_TRANSLATION:
             tgt_sents = st.session_state.get("tgt_sents")
@@ -471,7 +471,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             for i, tgt_sent in enumerate(tgt_sents, 1):
                 val_bar.progress(
                     10 + int((i / total) * 40),
-                    text=f"Reverse translating ({i}/{total})...",
+                    text=f"역번역 중 ({i}/{total})...",
                 )
                 if not _safe_str(tgt_sent):
                     recon_sents.append("")
@@ -480,16 +480,16 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
                 recon_sents.append(_safe_str(out, ""))
             recon_joined = " ".join([s for s in recon_sents if s])
 
-            val_bar.progress(60, text="Comparing text...")
+            val_bar.progress(60, text="텍스트 비교 중...")
             if unicodedata.normalize("NFC", recon_joined) == unicodedata.normalize(
                 "NFC", src
             ):
-                val_bar.progress(100, text="Verification Success.")
+                val_bar.progress(100, text="검증 성공.")
                 time.sleep(0.5)
                 val_bar.empty()
-                return "Automatic Validation using Forward-Backward Success."
+                return "자동 검증 성공 (정방향-역방향 일치)."
 
-            val_bar.progress(70, text="Checking semantic meaning...")
+            val_bar.progress(70, text="의미 일치 여부 확인 중...")
             client = genai.Client(api_key=GEMINI_API_KEY)
             cfg = genai.types.GenerateContentConfig(
                 temperature=0.0,
@@ -518,30 +518,28 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             val_bar.empty()
 
             if parsed.get("equal") is True:
-                return "Automatic Validation using Forward-Backward Failed. Semantic Equivalence Validation using LLM Success."
+                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공."
             else:
-                return "Automatic Validation using Forward-Backward Failed. Semantic Equivalence Validation using LLM Failed. Human feedback is required."
+                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다."
         else:
             # 줄단위 검증 로직
             tgt_lines = tgt_ui_text.split("\n")
             recon_lines = []
             total = len(tgt_lines)
             for i, t_line in enumerate(tgt_lines):
-                val_bar.progress(
-                    10 + int(((i + 1) / total) * 40), text="Reverse translating..."
-                )
+                val_bar.progress(10 + int(((i + 1) / total) * 40), text="역번역 중...")
                 if t_line.strip():
                     recon_lines.append(llm_chat(system_msg, t_line, lang))
                 else:
                     recon_lines.append("")
             recon = "\n".join(recon_lines)
 
-            val_bar.progress(60, text="Comparing text...")
+            val_bar.progress(60, text="텍스트 비교 중...")
             if recon == src:
                 val_bar.empty()
-                return "Automatic Validation using Forward-Backward Success."
+                return "자동 검증 성공 (정방향-역방향 일치)."
 
-            val_bar.progress(70, text="Checking semantic meaning...")
+            val_bar.progress(70, text="의미 일치 여부 확인 중...")
             client = genai.Client(api_key=GEMINI_API_KEY)
             cfg = genai.types.GenerateContentConfig(
                 temperature=0.0,
@@ -565,13 +563,13 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             parsed = json.loads(resp.text)
             val_bar.empty()
             if parsed.get("equal") is True:
-                return "Automatic Validation using Forward-Backward Failed. Semantic Equivalence Validation using LLM Success."
+                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공."
             else:
-                return "Automatic Validation using Forward-Backward Failed. Semantic Equivalence Validation using LLM Failed. Human feedback is required."
+                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다."
 
     except Exception as e:
         val_bar.empty()
-        return f"Validation error: {e}"
+        return f"검증 오류: {e}"
 
 
 # ----------------------------
@@ -721,12 +719,12 @@ if mode == "Translation":
 if not valid_pair:
     st.warning("입력 또는 출력 중 하나만 점자여야 합니다.")
 elif not model_ok:
-    st.warning(f"No vLLM model configured for {st.session_state.llm_lang_eval}.")
+    st.warning(f"{st.session_state.llm_lang_eval}에 대한 모델이 설정되지 않았습니다.")
 
 header_cols = st.columns([5, 1, 5])
 with header_cols[0]:
     st.selectbox(
-        "Source Language", TEXT_LANGS, key="src_lang_val", on_change=_on_language_change
+        "입력 언어", TEXT_LANGS, key="src_lang_val", on_change=_on_language_change
     )
 with header_cols[1]:
     if st.button(
@@ -735,7 +733,7 @@ with header_cols[1]:
         st.rerun()
 with header_cols[2]:
     st.selectbox(
-        "Target Language", TEXT_LANGS, key="tgt_lang_val", on_change=_on_language_change
+        "출력 언어", TEXT_LANGS, key="tgt_lang_val", on_change=_on_language_change
     )
 
 # Input
@@ -765,12 +763,12 @@ if mode == "Translation" and "go_summarize" in locals() and go_summarize and src
 
 # 2. 요약 결과 표시 (있을 경우)
 if st.session_state.summary_text:
-    st.markdown("**⬇️ Summarized Text**")
+    st.markdown("**⬇️ 요약 결과**")
     st.info(st.session_state.summary_text)
 
 # 3. Output Header
 st.markdown(
-    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">Output ({st.session_state.tgt_lang})</h3>',
+    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">출력 ({st.session_state.tgt_lang})</h3>',
     unsafe_allow_html=True,
 )
 
