@@ -624,6 +624,8 @@ if "tgt_lang_val" not in st.session_state:
     st.session_state.tgt_lang_val = "Braille"
 if "pending_swap" not in st.session_state:
     st.session_state.pending_swap = False
+if "last_is_valid" not in st.session_state:
+    st.session_state.last_is_valid = None
 
 # [변경됨] Swap Logic - 언어는 바꾸되, 텍스트는 빈 문자열로 초기화
 if st.session_state.pending_swap:
@@ -822,7 +824,7 @@ else:
     )
 
 if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
-    is_valid = st.session_state.last_is_valid
+    is_valid = st.session_state.get("last_is_valid")
     msg = st.session_state.last_val_msg
     if is_valid:
         validation_placeholder.success(msg)
@@ -854,6 +856,7 @@ if mode == "Translation" and "go_translate" in locals() and go_translate and src
     # D. 검증 실행
     is_valid, val_msg = validate_translation(real_src, result)
     st.session_state.last_val_msg = val_msg
+    st.session_state.last_is_valid = is_valid
 
     # E. 검증 결과 렌더링
     if is_valid:
