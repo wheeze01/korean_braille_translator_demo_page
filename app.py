@@ -434,7 +434,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             val_bar.progress(step_percents[step_idx], text=step_msg)
             time.sleep(0.6)
         val_bar.empty()
-        return "자동 검증 성공 (정방향-역방향 일치)."
+        return True, "자동 검증 성공 (정방향-역방향 일치)."
 
     try:
         # 프롬프트 설정
@@ -487,7 +487,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
                 val_bar.progress(100, text="검증 성공.")
                 time.sleep(0.5)
                 val_bar.empty()
-                return "자동 검증 성공 (정방향-역방향 일치)."
+                return True, "자동 검증 성공 (정방향-역방향 일치)."
 
             val_bar.progress(70, text="의미 일치 여부 확인 중...")
             client = genai.Client(api_key=GEMINI_API_KEY)
@@ -518,9 +518,15 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             val_bar.empty()
 
             if parsed.get("equal") is True:
-                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공."
+                return (
+                    True,
+                    "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공.",
+                )
             else:
-                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다."
+                return (
+                    False,
+                    "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다.",
+                )
         else:
             # 줄단위 검증 로직
             tgt_lines = tgt_ui_text.split("\n")
@@ -537,7 +543,7 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             val_bar.progress(60, text="텍스트 비교 중...")
             if recon == src:
                 val_bar.empty()
-                return "자동 검증 성공 (정방향-역방향 일치)."
+                return True, "자동 검증 성공 (정방향-역방향 일치)."
 
             val_bar.progress(70, text="의미 일치 여부 확인 중...")
             client = genai.Client(api_key=GEMINI_API_KEY)
@@ -563,13 +569,19 @@ def validate_translation(src: str, tgt_ui_text: str) -> str:
             parsed = json.loads(resp.text)
             val_bar.empty()
             if parsed.get("equal") is True:
-                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공."
+                return (
+                    True,
+                    "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 성공.",
+                )
             else:
-                return "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다."
+                return (
+                    False,
+                    "자동 검증 실패 (정방향-역방향 불일치), 의미 기반 검증 실패. 추가 검토가 필요합니다.",
+                )
 
     except Exception as e:
         val_bar.empty()
-        return f"검증 오류: {e}"
+        return False, f"검증 오류: {e}"
 
 
 # ----------------------------
@@ -810,8 +822,9 @@ else:
     )
 
 if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
+    is_valid = st.session_state.last_is_valid
     msg = st.session_state.last_val_msg
-    if "성공" in msg.lower():
+    if is_valid:
         validation_placeholder.success(msg)
     else:
         validation_placeholder.error(msg)
@@ -839,11 +852,11 @@ if mode == "Translation" and "go_translate" in locals() and go_translate and src
     )
 
     # D. 검증 실행
-    val_msg = validate_translation(real_src, result)
+    is_valid, val_msg = validate_translation(real_src, result)
     st.session_state.last_val_msg = val_msg
 
     # E. 검증 결과 렌더링
-    if "success" in val_msg.lower():
+    if is_valid:
         validation_placeholder.success(val_msg)
     else:
         validation_placeholder.error(val_msg)
