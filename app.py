@@ -807,9 +807,6 @@ st.markdown(
 output_placeholder = st.empty()
 validation_placeholder = st.empty()
 
-# 기본 상태 렌더링
-st.session_state["tgt_text_widget"] = st.session_state.tgt_text
-
 output_placeholder.text_area(
     "Target Text",
     height=135,
@@ -844,12 +841,11 @@ if mode == "Translation" and "go_translate" in locals() and go_translate and src
     st.session_state.tgt_text = result
 
     # C. [중요] 번역 결과 즉시 화면에 렌더링 (검증 전에 사용자가 볼 수 있게)
-    st.session_state["tgt_text_widget"] = result
     output_placeholder.text_area(
         "Target Text",
+        value=result,
         height=135,
         label_visibility="collapsed",
-        key="tgt_text_widget",
     )
 
     # D. 검증 실행
