@@ -751,7 +751,7 @@ with header_cols[2]:
 
 # Input
 st.markdown(
-    f'<h3 style="margin-top: 0.2rem; margin-bottom: 0.3rem;">입력 ({st.session_state.src_lang})</h3>',
+    f'<h3 style="margin-top: 0.2rem; margin-bottom: 0.3rem;">입력 ({TEXT_LANGS_DISPLAY[st.session_state.src_lang]})</h3>',
     unsafe_allow_html=True,
 )
 st.session_state.src_text = st.text_area(
@@ -781,7 +781,7 @@ if st.session_state.summary_text:
 
 # 3. Output Header
 st.markdown(
-    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">출력 ({st.session_state.tgt_lang})</h3>',
+    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">출력 ({TEXT_LANGS_DISPLAY[st.session_state.tgt_lang]})</h3>',
     unsafe_allow_html=True,
 )
 
