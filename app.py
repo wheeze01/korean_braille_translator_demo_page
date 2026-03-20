@@ -636,6 +636,11 @@ st.session_state.src_lang = st.session_state.src_lang_val
 st.session_state.tgt_lang = st.session_state.tgt_lang_val
 TEXT_LANGS = ["Korean", "Braille"]
 
+TEXT_LANGS_DISPLAY = {
+    "Korean": "한국어",
+    "Braille": "점자",
+}
+
 
 def _enforce_pair_and_mode():
     src = st.session_state.get("src_lang", "Korean")
@@ -724,7 +729,11 @@ elif not model_ok:
 header_cols = st.columns([5, 1, 5])
 with header_cols[0]:
     st.selectbox(
-        "입력 언어", TEXT_LANGS, key="src_lang_val", on_change=_on_language_change
+        "입력 언어",
+        TEXT_LANGS,
+        format_func=lambda x: TEXT_LANGS_DISPLAY[x],
+        key="src_lang_val",
+        on_change=_on_language_change,
     )
 with header_cols[1]:
     if st.button(
@@ -733,7 +742,11 @@ with header_cols[1]:
         st.rerun()
 with header_cols[2]:
     st.selectbox(
-        "출력 언어", TEXT_LANGS, key="tgt_lang_val", on_change=_on_language_change
+        "출력 언어",
+        TEXT_LANGS,
+        format_func=lambda x: TEXT_LANGS_DISPLAY[x],
+        key="tgt_lang_val",
+        on_change=_on_language_change,
     )
 
 # Input
