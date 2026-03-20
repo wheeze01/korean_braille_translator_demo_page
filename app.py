@@ -784,6 +784,9 @@ src_nfc = unicodedata.normalize("NFC", st.session_state.src_text)
 
 # 1. 요약 로직 (독립적)
 if mode == "Translation" and "go_summarize" in locals() and go_summarize and src_nfc:
+    st.session_state.last_val_msg = ""
+    st.session_state.last_is_valid = None
+
     st.session_state.summary_text = gemini_summarize(src_nfc, st.session_state.src_lang)
     # Rerun to show summary immediately
     st.rerun()
@@ -834,6 +837,9 @@ if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
 
 # 5. 번역 + 검증 로직 (순차 실행)
 if mode == "Translation" and "go_translate" in locals() and go_translate and src_nfc:
+    st.session_state.last_val_msg = ""
+    st.session_state.last_is_valid = None
+
     # A. 번역 대상 결정 (요약본이 있으면 그것을, 없으면 원본을)
     real_src = (
         st.session_state.summary_text if st.session_state.summary_text else src_nfc
