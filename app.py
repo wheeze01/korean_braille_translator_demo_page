@@ -782,59 +782,9 @@ st.session_state.src_text = st.text_area(
 # ----------------------------
 src_nfc = unicodedata.normalize("NFC", st.session_state.src_text)
 
-# 1. 요약 로직 (독립적)
-if mode == "Translation" and "go_summarize" in locals() and go_summarize and src_nfc:
-    st.session_state.last_val_msg = ""
-    st.session_state.last_is_valid = None
-    st.session_state.tgt_text = ""
-
-    st.session_state.summary_text = gemini_summarize(src_nfc, st.session_state.src_lang)
-    # Rerun to show summary immediately
-    st.rerun()
-
-# 2. 요약 결과 표시 (있을 경우)
-if st.session_state.summary_text:
-    st.markdown("**⬇️ 요약 결과**")
-    st.info(st.session_state.summary_text)
-
-# 3. Output Header
-st.markdown(
-    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">출력 ({TEXT_LANGS_DISPLAY[st.session_state.tgt_lang]})</h3>',
-    unsafe_allow_html=True,
-)
-
 # 4. 플레이스홀더 설정 (순차적 렌더링을 위해)
 output_placeholder = st.empty()
 validation_placeholder = st.empty()
-
-# 기본 상태 렌더링 (결과가 이미 있으면 표시)
-if st.session_state.tgt_text:
-    # [변경됨] key="tgt_text_filled" 추가
-    output_placeholder.text_area(
-        "Target Text",
-        value=st.session_state.tgt_text,
-        height=135,
-        label_visibility="collapsed",
-        key="tgt_text_filled",
-    )
-else:
-    # [변경됨] key="tgt_text_empty" 추가
-    output_placeholder.text_area(
-        "Target Text",
-        height=135,
-        label_visibility="collapsed",
-        placeholder="번역 결과가 여기에 표시됩니다.",
-        key="tgt_text_empty",
-    )
-
-if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
-    is_valid = st.session_state.get("last_is_valid")
-    msg = st.session_state.last_val_msg
-    if is_valid:
-        validation_placeholder.success(msg)
-    else:
-        validation_placeholder.error(msg)
-
 
 # 5. 번역 + 검증 로직 (순차 실행)
 if mode == "Translation" and "go_translate" in locals() and go_translate and src_nfc:
@@ -872,3 +822,52 @@ if mode == "Translation" and "go_translate" in locals() and go_translate and src
         validation_placeholder.success(val_msg)
     else:
         validation_placeholder.error(val_msg)
+
+# 1. 요약 로직 (독립적)
+if mode == "Translation" and "go_summarize" in locals() and go_summarize and src_nfc:
+    st.session_state.last_val_msg = ""
+    st.session_state.last_is_valid = None
+    st.session_state.tgt_text = ""
+
+    st.session_state.summary_text = gemini_summarize(src_nfc, st.session_state.src_lang)
+    # Rerun to show summary immediately
+    st.rerun()
+
+# 2. 요약 결과 표시 (있을 경우)
+if st.session_state.summary_text:
+    st.markdown("**⬇️ 요약 결과**")
+    st.info(st.session_state.summary_text)
+
+# 3. Output Header
+st.markdown(
+    f'<h3 style="margin-top: 0rem; margin-bottom: 0.3rem;">출력 ({TEXT_LANGS_DISPLAY[st.session_state.tgt_lang]})</h3>',
+    unsafe_allow_html=True,
+)
+
+# 기본 상태 렌더링 (결과가 이미 있으면 표시)
+if st.session_state.tgt_text:
+    # [변경됨] key="tgt_text_filled" 추가
+    output_placeholder.text_area(
+        "Target Text",
+        value=st.session_state.tgt_text,
+        height=135,
+        label_visibility="collapsed",
+        key="tgt_text_filled",
+    )
+else:
+    # [변경됨] key="tgt_text_empty" 추가
+    output_placeholder.text_area(
+        "Target Text",
+        height=135,
+        label_visibility="collapsed",
+        placeholder="번역 결과가 여기에 표시됩니다.",
+        key="tgt_text_empty",
+    )
+
+if "last_val_msg" in st.session_state and st.session_state.last_val_msg:
+    is_valid = st.session_state.get("last_is_valid")
+    msg = st.session_state.last_val_msg
+    if is_valid:
+        validation_placeholder.success(msg)
+    else:
+        validation_placeholder.error(msg)
